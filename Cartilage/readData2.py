@@ -141,11 +141,88 @@ def ConvertToHdf5():
     with h5py.File(h5_path_labels,'w') as hf:
         hf.create_dataset('labels', data=labels[i])
 
+def ReadHdf5(debug = 0):
+# Below part reads hdf5 images and stores them in numpy arrays 
+
+  root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
+  no_entries = 9
+
+  img_array = []
+  label_array = []
+
+  for i in range(no_entries):
+    h5_path_img = os.path.join(root_dir, 'imagehdf5/pat{}.h5'.format(i))
+    h5_path_labels = os.path.join(root_dir, 'labelhdf5/pat{}.h5'.format(i))
+
+    with h5py.File(h5_path_img ,'r') as hf:
+      data = hf.get('imgs')
+      np_data = np.array(data)
+      img_array.append(np_data)
+      if (debug):
+        print('Shape of image array: \n', img_array[i].shape)
+
+    with h5py.File(h5_path_labels ,'r') as hf:
+      data = hf.get('labels')
+      np_data = np.array(data)
+      label_array.append(np_data)
+      if (debug):
+        print('Shape of the label array: \n', label_array[i].shape)
+
+  img_array = np.array(img_array)
+  label_array = np.array(label_array)
+
+  if debug:
+    print ("Size of img_array", img_array.shape)
+    print ("Size of label_array", label_array.shape)
+
+  return img_array, label_array
 
 
+def Convert3DTo2D(img_array, label_array, debug = 0):
+
+  noOfRawImages = img_array.shape[0]
+
+  image2Darray = np.array([ img_array[i][j] for i in range(noOfRawImages) for j in range(img_array[i].shape[0]) ])
+  label2Darray = np.array([ label_array[i][j] for i in range(noOfRawImages) for j in range(label_array[i].shape[0]) ])
+
+  if (debug):
+    print ("Shape of image2Darray is: ", image2Darray.shape)
+    print ("Shape of label2Darray is: ", label2Darray.shape)
+
+  return image2Darray, label2Darray
+
+def RemoveZeroLabelSlices (image2Darray, label2Darray, debug=0, threshold =0):
+
+# ========== Ignore label slices with sum = 0 or sum <= threshold ======
+  image2Darray = np.array( [image2Darray[i]  for i in range(image2Darray.shape[0]) if (label2Darray[i].sum()>threshold)  ] )
+  label2Darray = np.array( [label2Darray[i]  for i in range(label2Darray.shape[0]) if (label2Darray[i].sum()>threshold)  ] )
+
+  if debug:
+    print ("Shapes after removing 0 label slices: ")
+    print (image2Darray.shape)
+    print (label2Darray.shape)
+
+  return image2Darray, label2Darray
 
 
+def ZeroPadSlicesDivisibleByN (image2Darray, label2Darray, number =16, debug=0):
+  # ====== Zero-pad all slices to make size divisible by 16 on both sides (for U-net) ==============
+  
+  currX = image2Darray.shape[1]
+  currY = image2Darray.shape[2]
+  desiredX = max (math.floor(currX/16)*16, math.ceil(currX/16)*16)
+  desiredY = max (math.floor(currY/16)*16, math.ceil(currY/16)*16)
+
+  image2Darray = np.array( [ZeroPadSlice(image2Darray[i], desiredX, desiredY) for i in range(0, image2Darray.shape[0])] )
+  label2Darray = np.array( [ZeroPadSlice(label2Darray[i], desiredX, desiredY) for i in range(0, label2Darray.shape[0])] )
+  if debug:
+    print ("Shapes after zero padding: ")
+    print (image2Darray.shape)
+    print (image2Darray.shape[0])
+    print (image2Darray.shape[1])
+    print (image2Darray[0].shape)
+    print (image2Darray[0].shape[0])
 
 
-
+  return image2Darray, label2Darray
 
