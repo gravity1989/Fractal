@@ -197,6 +197,10 @@ def RemoveZeroLabelSlices (image2Darray, label2Darray, debug=0, threshold =0):
   image2Darray = np.array( [image2Darray[i]  for i in range(image2Darray.shape[0]) if (label2Darray[i].sum()>threshold)  ] )
   label2Darray = np.array( [label2Darray[i]  for i in range(label2Darray.shape[0]) if (label2Darray[i].sum()>threshold)  ] )
 
+  # Ask why doesn't the code below work
+  # image2Darray = image2Darray[label2Darray.sum() > threshold]
+  # label2Darray = label2Darray[label2Darray.sum() > threshold]
+
   if debug:
     print ("Shapes after removing 0 label slices: ")
     print (image2Darray.shape)
@@ -207,7 +211,7 @@ def RemoveZeroLabelSlices (image2Darray, label2Darray, debug=0, threshold =0):
 
 def ZeroPadSlicesDivisibleByN (image2Darray, label2Darray, number =16, debug=0):
   # ====== Zero-pad all slices to make size divisible by 16 on both sides (for U-net) ==============
-  
+
   currX = image2Darray.shape[1]
   currY = image2Darray.shape[2]
   desiredX = max (math.floor(currX/16)*16, math.ceil(currX/16)*16)
