@@ -71,8 +71,8 @@ up_conv_1c = Convolution2D(64, 3, 3, border_mode='same', activation='relu')(merg
 up_conv_1d = Convolution2D(64, 3, 3, border_mode='same', activation='relu')(up_conv_1c) 
 
 up_conv_0 = Convolution2D(5, 1, 1, border_mode='same')(up_conv_1d) 
-up_conv_00 = Flatten()(up_conv_0)
-predictions = Dense(5, activation='softmax')(up_conv_00)
+# up_conv_00 = Flatten()(up_conv_0)
+# predictions = Dense(5, activation='softmax')(up_conv_00)
 
 
 
