@@ -12,14 +12,14 @@ from skimage.transform import resize
 import scipy.ndimage as ndi
 import h5py
 
-def ReadData():
-  root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
+def ReadData(root_dir, range_):
+  # root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
 
-  img_arr = np.array([ReadAndPreprocessImage(root_dir,i) for i in range(1,10)])
-  label_arr = np.array([ReadLabel(root_dir,i) for i in range(1,10)])
+  img_arr = np.array([ReadAndPreprocessImage(root_dir,i) for i in range(1,range_)])
+  label_arr = np.array([ReadLabel(root_dir,i) for i in range(1,range_)])
 
   # max X and Y
-  maxX, maxY = ResizeData()
+  maxX, maxY = ResizeData(root_dir, range_ ) 
 
   resizedImages = np.array( [ ZeroPad(img, maxX, maxY) for img in img_arr ] )
   resizedLabels = np.array( [ ZeroPad(img, maxX, maxY) for img in label_arr ] )
@@ -73,19 +73,19 @@ def ReadLabel(root_dir, i, scale=[1,1,1]):
   return scaled_image
 
 
-def ResizeData():
+def ResizeData(root_dir, range_):
 
-  root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
+  # root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
   ext = ".mhd"
   img_list = []
-  for i in range(1,10):
+  for i in range(1,range_):
     imagefilename = os.path.join(root_dir, 'image-{:03d}'.format(i) + ext)
     itk_img = sitk.ReadImage(imagefilename)
     raw_img = sitk.GetArrayFromImage(itk_img) 
     img_list.append(raw_img)
 
-  XList = np.array([img_list[i].shape[1] for i in range(9)])
-  YList = np.array([img_list[i].shape[2] for i in range(9)])
+  XList = np.array([img_list[i].shape[1] for i in range(range_ - 1)]) # -1 because starts from 0 in arrays 
+  YList = np.array([img_list[i].shape[2] for i in range(range_ - 1)])
   RatioList = np.array( [ img_list[i].shape[2]/img_list[i].shape[1] for i in range(9) ] )
 
   finalX = XList.max()
@@ -120,17 +120,18 @@ def ZeroPadSlice (imgSlice, maxX, maxY):
 
   return result_img
 
-def ConvertToHdf5():
+def ConvertToHdf5(root_dir, range_):
   val_pats = [9,5]
 
-  images, labels = ReadData()
-  root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
+  images, labels = ReadData(root_dir, range_)
+  # root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
   
   print (root_dir, " : root_dir")
 
-  for i in range(9):
-    h5_path_img = os.path.join(root_dir, 'imagehdf5/pat{}.h5'.format(i))
-    h5_path_labels = os.path.join(root_dir, 'labelhdf5/pat{}.h5'.format(i))
+  for i in range(range_ - 1):
+    # i+1 because naming starts from 1
+    h5_path_img = os.path.join(root_dir, 'imagehdf5/pat{}.h5'.format(i+1)) 
+    h5_path_labels = os.path.join(root_dir, 'labelhdf5/pat{}.h5'.format(i+1))
 
     print (h5_path_img)
     print (h5_path_labels)
@@ -141,16 +142,16 @@ def ConvertToHdf5():
     with h5py.File(h5_path_labels,'w') as hf:
         hf.create_dataset('labels', data=labels[i])
 
-def ReadHdf5(debug = 0):
+def ReadHdf5(root_dir, noImages, debug = 0):
 # Below part reads hdf5 images and stores them in numpy arrays 
 
-  root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
-  no_entries = 9
+  # root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
+  no_entries = noImages
 
   img_array = []
   label_array = []
 
-  for i in range(no_entries):
+  for i in range(1, no_entries+1):
     h5_path_img = os.path.join(root_dir, 'imagehdf5/pat{}.h5'.format(i))
     h5_path_labels = os.path.join(root_dir, 'labelhdf5/pat{}.h5'.format(i))
 

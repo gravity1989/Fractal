@@ -16,7 +16,9 @@ from scipy.misc import toimage # to display images for double check
 
 # image_arr, label_arr = ReadData()
 
-ConvertToHdf5()
+root_dir = '/Users/A/Documents/Fractal/Cartilage/TrainingData-A/'
+
+ConvertToHdf5(root_dir, 10)
 
 
 print ("====Sucess=====")
